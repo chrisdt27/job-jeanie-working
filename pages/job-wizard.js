@@ -15,9 +15,28 @@ export default function JobWizard() {
     setJob({ ...job, [field]: value });
   };
 
-  const handleSubmit = () => {
-    alert(`✅ Job submitted!\n\n${JSON.stringify(job, null, 2)}`);
-    // In production, you'd send this data to a backend API here
+  const handleSubmit = async () => {
+    try {
+      const response = await fetch('/api/submit-job', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(job),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert('❌ Failed to submit job: ' + (data.error || 'Unknown error'));
+        return;
+      }
+
+      alert('✅ Job submitted successfully!');
+      console.log('Submitted job:', data.job);
+      // Optional: reset form or redirect
+    } catch (error) {
+      console.error('Submission error:', error);
+      alert('❌ An error occurred while submitting the job.');
+    }
   };
 
   return (
