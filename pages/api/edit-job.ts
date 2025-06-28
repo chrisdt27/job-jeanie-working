@@ -1,4 +1,4 @@
-// pages/api/submit-job.ts
+// pages/api/edit-job.ts
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getAuth } from '@clerk/nextjs/server';
 import { createClient } from '@supabase/supabase-js';
@@ -18,33 +18,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  const { title, description, location, date, budget, urgency } = req.body;
+  const { id, title, description, location } = req.body;
 
-  if (!title || !description || !location) {
+  if (!id || !title || !description || !location) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from('jobs')
-    .insert([
-      {
-        user_id: userId,
-        title,
-        description,
-        location,
-        date,
-        budget,
-        urgency,
-      },
-    ])
-    .select()
-    .single();
+    .update({ title, description, location })
+    .eq('id', id)
+    .eq('user_id', userId);
 
   if (error) {
-    console.error('❌ Supabase insert error:', error.message);
+    console.error('❌ Supabase update error:', error.message);
     return res.status(500).json({ error: error.message });
   }
 
-  return res.status(200).json({ message: 'Job submitted successfully', job: data });
+  return res.status(200).json({ message: 'Job updated successfully' });
 }
-
